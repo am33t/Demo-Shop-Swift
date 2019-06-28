@@ -137,7 +137,7 @@ class ATTilesVC: UIViewController, UICollectionViewDataSource, UICollectionViewD
             cell.setItem(self.items[indexPath.row])
             return cell
         }
-        return UITableViewCell.init()
+        return UICollectionViewCell.init()
     }
     
     internal func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
