@@ -69,7 +69,6 @@ import Realm.Private
 @objc(RealmSwiftObject)
 open class Object: RLMObjectBase, ThreadConfined, RealmCollectionValue {
     /// :nodoc:
-    // swiftlint:disable:next identifier_name
     public static func _rlmArray() -> RLMArray<AnyObject> {
         return RLMArray(objectClassName: className())
     }
@@ -270,7 +269,7 @@ open class Object: RLMObjectBase, ThreadConfined, RealmCollectionValue {
 
      Objects are considered the same if and only if they are both managed by the same
      Realm and point to the same underlying object in the database.
-     
+
      - note: Equality comparison is implemented by `isEqual(_:)`. If the object type
              is defined with a primary key, `isEqual(_:)` behaves identically to this
              method. If the object type is not defined with a primary key,
@@ -372,6 +371,11 @@ public final class DynamicObject: Object {
     }
 
     /// :nodoc:
+    public override func dynamicList(_ propertyName: String) -> List<DynamicObject> {
+        return self[propertyName] as! List<DynamicObject>
+    }
+
+    /// :nodoc:
     public override func value(forUndefinedKey key: String) -> Any? {
         return self[key]
     }
@@ -427,6 +431,12 @@ public class ObjectUtil: NSObject {
                 return name.substring(to: storageRange.lowerBound)
             #endif
         }
+        // Xcode 11 changed the name of the storage property to "$__lazy_storage_$_propName"
+        #if swift(>=4.0)
+            if let storageRange = name.range(of: "$__lazy_storage_$_", options: [.anchored]) {
+                return String(name[storageRange.upperBound...])
+            }
+        #endif
         return nil
     }
 
@@ -502,7 +512,7 @@ public class ObjectUtil: NSObject {
     }
 
     @objc private class func getSwiftProperties(_ object: Any) -> [RLMSwiftPropertyMetadata] {
-        return getNonIgnoredMirrorChildren(for: object).enumerated().flatMap { idx, prop in
+        return getNonIgnoredMirrorChildren(for: object).enumerated().map { idx, prop in
             if let value = prop.value as? LinkingObjectsBase {
                 return RLMSwiftPropertyMetadata(forLinkingObjectsProperty: prop.label!,
                                                 className: value.objectClassName,

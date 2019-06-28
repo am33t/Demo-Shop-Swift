@@ -106,7 +106,7 @@ id RLMPermissionForRole(RLMArray *array, id role) {
     return @[@"identity"];
 }
 + (NSDictionary *)_realmColumnNames {
-    return @{@"identity": @"id"};
+    return @{@"identity": @"id", @"role": @"role"};
 }
 + (NSDictionary *)linkingObjectsProperties {
     return @{@"roles": [RLMPropertyDescriptor descriptorWithClass:RLMPermissionRole.class propertyName:@"users"]};
@@ -193,7 +193,7 @@ id RLMPermissionForRole(RLMArray *array, id role) {
     return [RLMClassPermission objectInRealm:realm forPrimaryKey:name];
 }
 + (instancetype)objectInRealm:(RLMRealm *)realm forClass:(Class)cls {
-    return [RLMClassPermission objectInRealm:realm forPrimaryKey:[cls className]];
+    return [RLMClassPermission objectInRealm:realm forPrimaryKey:[cls _realmObjectName] ?: [cls className]];
 }
 @end
 

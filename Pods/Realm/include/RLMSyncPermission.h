@@ -16,6 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
+#import <Realm/RLMConstants.h>
 #import <Realm/RLMObject.h>
 
 @protocol RLMPermission, RLMPermissionUser;
@@ -155,6 +156,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// The unique Realm Object Server user ID string identifying this user. This will have
 /// the same value as `-[RLMSyncUser identity]`.
 @property (nonatomic) NSString *identity;
+
+/// The user's private role. This will be initialized to a role named for the user's
+/// identity that contains this user as its only member.
+@property (nonatomic) RLMPermissionRole *role;
 
 /// Roles which this user belongs to.
 @property (nonatomic, readonly) RLMLinkingObjects<RLMPermissionRole *> *roles;
@@ -358,7 +363,7 @@ FOUNDATION_EXTERN id RLMPermissionForRole(RLMArray *array, id role);
  access to a Realm can always read from that Realm, and users with
  administrative access can always read or write from the Realm.
  */
-typedef NS_ENUM(NSUInteger, RLMSyncAccessLevel) {
+typedef RLM_CLOSED_ENUM(NSUInteger, RLMSyncAccessLevel) {
     /// No access whatsoever.
     RLMSyncAccessLevelNone          = 0,
     /**

@@ -6,6 +6,6 @@ target 'Demo-Shop-Swift' do
   use_frameworks!
 
   # Pods for Demo-Shop-Swift
-pod 'RealmSwift', '3.2.0-beta.3'
-pod 'Alamofire', '~> 4.7'
+pod 'RealmSwift'
+pod 'Alamofire'
 end

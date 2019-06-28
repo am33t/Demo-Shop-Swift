@@ -41,6 +41,8 @@
 namespace realm {
 
 class BacklinkColumn;
+template <class>
+class BacklinkCount;
 class BinaryColumy;
 class ConstTableView;
 class Group;
@@ -163,6 +165,10 @@ public:
 
     // Whether or not elements can be null.
     bool is_nullable(size_t col_ndx) const;
+
+    // Returns the link type for the given column.
+    // Throws an LogicError if target column is not a link column.
+    LinkType get_link_type(size_t col_ndx) const;
 
     //@{
     /// Conventience functions for inspecting the dynamic table type.
@@ -334,6 +340,9 @@ public:
     Columns<T> column(size_t column); // FIXME: Should this one have been declared noexcept?
     template <class T>
     Columns<T> column(const Table& origin, size_t origin_column_ndx);
+    // BacklinkCount is a total count per row and therefore not attached to a specific column
+    template <class T>
+    BacklinkCount<T> get_backlink_count();
 
     template <class T>
     SubQuery<T> column(size_t column, Query subquery);
@@ -385,7 +394,8 @@ public:
 
     size_t add_empty_row(size_t num_rows = 1);
     void insert_empty_row(size_t row_ndx, size_t num_rows = 1);
-    size_t add_row_with_key(size_t col_ndx, int64_t key);
+    size_t add_row_with_key(size_t col_ndx, util::Optional<int64_t> key);
+    size_t add_row_with_keys(size_t col_1_ndx, int64_t key1, size_t col_2_ndx, StringData key2);
     void remove(size_t row_ndx);
     void remove_recursive(size_t row_ndx);
     void remove_last();
@@ -782,8 +792,33 @@ public:
         return Query(*this, lv);
     }
 
-    Table& link(size_t link_column);
+    //@{
+    /// WARNING: The link() and backlink() methods will alter a state on the Table object and return a reference to itself.
+    /// Be aware if assigning the return value of link() to a variable; this might be an error!
+
+    /// This is an error:
+
+    /// Table& cats = owners->link(1);
+    /// auto& dogs = owners->link(2);
+
+    /// Query q = person_table->where()
+    /// .and_query(cats.column<String>(5).equal("Fido"))
+    /// .Or()
+    /// .and_query(dogs.column<String>(6).equal("Meowth"));
+
+    /// Instead, do this:
+
+    /// Query q = owners->where()
+    /// .and_query(person_table->link(1).column<String>(5).equal("Fido"))
+    /// .Or()
+    /// .and_query(person_table->link(2).column<String>(6).equal("Meowth"));
+
+    /// The two calls to link() in the errorneous example will append the two values 0 and 1 to an internal vector in the
+    /// owners table, and we end up with three references to that same table: owners, cats and dogs. They are all the same
+    /// table, its vector has the values {0, 1}, so a query would not make any sense.
+    Table& link(size_t link_column);    
     Table& backlink(const Table& origin, size_t origin_col_ndx);
+    //@}
 
     // Optimizing. enforce == true will enforce enumeration of all string columns;
     // enforce == false will auto-evaluate if they should be enumerated or not
@@ -1954,6 +1989,14 @@ inline Columns<T> Table::column(const Table& origin, size_t origin_col_ndx)
 }
 
 template <class T>
+inline BacklinkCount<T> Table::get_backlink_count()
+{
+    std::vector<size_t> link_chain = std::move(m_link_chain);
+    m_link_chain.clear();
+    return BacklinkCount<T>(this, std::move(link_chain));
+}
+
+template <class T>
 SubQuery<T> Table::column(size_t column_ndx, Query subquery)
 {
     static_assert(std::is_same<T, LinkList>::value, "A subquery must involve a link list or backlink column");
@@ -1967,7 +2010,6 @@ SubQuery<T> Table::column(const Table& origin, size_t origin_col_ndx, Query subq
     return SubQuery<T>(column<T>(origin, origin_col_ndx), std::move(subquery));
 }
 
-// For use by queries
 inline Table& Table::link(size_t link_column)
 {
     m_link_chain.push_back(link_column);

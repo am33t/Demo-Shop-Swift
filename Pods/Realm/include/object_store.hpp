@@ -122,6 +122,9 @@ public:
     static std::string table_name_for_object_type(StringData class_name);
     static StringData object_type_for_table_name(StringData table_name);
 
+    // creates the private role for the given user if it does not exist
+    static void ensure_private_role_exists_for_user(Group& group, StringData sync_user_id);
+
 private:
     friend class ObjectSchema;
 };
@@ -165,6 +168,10 @@ struct SchemaMismatchException : public std::logic_error {
 
 struct InvalidSchemaChangeException : public std::logic_error {
     InvalidSchemaChangeException(std::vector<ObjectSchemaValidationException> const& errors);
+};
+
+struct InvalidExternalSchemaChangeException : public std::logic_error {
+    InvalidExternalSchemaChangeException(std::vector<ObjectSchemaValidationException> const& errors);
 };
 } // namespace realm
 
