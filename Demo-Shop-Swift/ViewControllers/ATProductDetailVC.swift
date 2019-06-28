@@ -12,8 +12,8 @@ class ATProductDetailVC: UIViewController, UITableViewDataSource, UITableViewDel
    
     @IBOutlet var lblTitle:UILabel!
     @IBOutlet var tableViewVariants: UITableView!
-    var product: Product!
-    var selectedInvexVariant:IndexPath!
+    var product: Product?
+    var selectedInvexVariant:IndexPath?
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupUI()
@@ -31,34 +31,37 @@ class ATProductDetailVC: UIViewController, UITableViewDataSource, UITableViewDel
         self.tableViewVariants.dataSource = self
         self.tableViewVariants.delegate = self
         
-        self.lblTitle.text = product.name
+        self.lblTitle.text = product?.name
         self.tableViewVariants.reloadData()
     }
     
     internal func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.product.variants.count
+        return self.product?.variants.count ?? 0
     }
     internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableViewVariants.dequeueReusableCell(withIdentifier: "ATProductDetailVC_VariantCall") as? ATProductDetailVC_VariantCall
-        let variant = self.product.variants[indexPath.row]
-        var text = ""
-        if variant.price.count > 0 {
-            text.append("Price: \(variant.price)₹ ")
+        if let cell = tableViewVariants.dequeueReusableCell(withIdentifier: "ATProductDetailVC_VariantCall") as? ATProductDetailVC_VariantCall {
+            let variant = self.product?.variants[indexPath.row]
+            var text = ""
+            if let price = variant?.price {
+                text.append("Price: \(price)₹ ")
+            }
+            if let color = variant?.color {
+                text.append("Color: \(color) ")
+            }
+            if let size = variant?.size {
+                text.append("Size: \(size) ")
+            }
+            cell.lblTitle.text = text
+            if let selectedInvexVariant = self.selectedInvexVariant, indexPath == selectedInvexVariant {
+                cell.vwBackground.backgroundColor = UIColor(red: 0.5, green: 0.4, blue: 0.5, alpha: 1)
+            }
+            else {
+                cell.vwBackground.backgroundColor = UIColor.gray
+            }
+            return cell
         }
-        if variant.color.count > 0 {
-            text.append("Color: \(variant.color) ")
-        }
-        if variant.size.count > 0 {
-            text.append("Size: \(variant.size) ")
-        }
-        cell?.lblTitle.text = text
-        if self.selectedInvexVariant != nil && indexPath == self.selectedInvexVariant {
-            cell?.vwBackground.backgroundColor = UIColor(red: 0.5, green: 0.4, blue: 0.5, alpha: 1)
-        }
-        else {
-            cell?.vwBackground.backgroundColor = UIColor.gray
-        }
-        return cell!
+        return UITableViewCell.init()
+
     }
     internal func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.selectedInvexVariant = indexPath

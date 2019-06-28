@@ -46,11 +46,11 @@ class ATTilesVC: UIViewController, UICollectionViewDataSource, UICollectionViewD
         case categories
         case rankings
     }
-    var pageType: PageType!
-    var parenCategoryId: String!
-    var parentRankingName: String!
+    var pageType: PageType?
+    var parenCategoryId: String?
+    var parentRankingName: String?
     
-    public func setDataParameters(_ pageType: PageType, parenCategoryId: String!, parentRankingName: String!) {
+    public func setDataParameters(_ pageType: PageType, parenCategoryId: String?, parentRankingName: String?) {
         self.pageType = pageType
         self.parenCategoryId = parenCategoryId
         self.parentRankingName = parentRankingName
@@ -58,18 +58,18 @@ class ATTilesVC: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     private func fetchItems() {
         if self.pageType == PageType.categories {
-            if self.parenCategoryId != nil {
-                self.items = ATPersistenceManager.sharedManager().childCategoriesForCategoryId(self.parenCategoryId)
+            if let parenCategoryId = self.parenCategoryId {
+                self.items = ATPersistenceManager.sharedManager().childCategoriesForCategoryId(parenCategoryId)
                 }
             else {
                 self.items = ATPersistenceManager.sharedManager().allCategories()
             }
         }
-        else if self.pageType == PageType.products && self.parenCategoryId != nil {
-            self.items = ATPersistenceManager.sharedManager().productsForCategoryId(self.parenCategoryId)
+        else if self.pageType == PageType.products, let parenCategoryId = self.parenCategoryId {
+            self.items = ATPersistenceManager.sharedManager().productsForCategoryId(parenCategoryId)
         }
-        else if self.pageType == PageType.products && self.parentRankingName != nil {
-            self.items = ATPersistenceManager.sharedManager().productsForRankingName(self.parentRankingName)
+        else if self.pageType == PageType.products, let parentRankingName = self.parentRankingName {
+            self.items = ATPersistenceManager.sharedManager().productsForRankingName(parentRankingName)
         }
         else if self.pageType == PageType.rankings {
             self.items = ATPersistenceManager.sharedManager().allRankings()
@@ -95,33 +95,37 @@ class ATTilesVC: UIViewController, UICollectionViewDataSource, UICollectionViewD
     private func pushForCategory(_ category:Category) {
         if category.child_categories.count > 0 {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let tilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as! ATTilesVC
-            tilesVC.setDataParameters(.categories, parenCategoryId: category.id, parentRankingName: nil)
-            tilesVC.navigationItem.title = category.name
-            self.navigationController?.pushViewController(tilesVC, animated: true)
+            if let tilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as? ATTilesVC {
+                tilesVC.setDataParameters(.categories, parenCategoryId: category.id, parentRankingName: nil)
+                tilesVC.navigationItem.title = category.name
+                self.navigationController?.pushViewController(tilesVC, animated: true)
+            }
         }
         else {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let tilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as! ATTilesVC
-            tilesVC.setDataParameters(.products, parenCategoryId: category.id, parentRankingName: nil)
-            tilesVC.navigationItem.title = category.name
-            self.navigationController?.pushViewController(tilesVC, animated: true)
+            if let tilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as? ATTilesVC {
+                tilesVC.setDataParameters(.products, parenCategoryId: category.id, parentRankingName: nil)
+                tilesVC.navigationItem.title = category.name
+                self.navigationController?.pushViewController(tilesVC, animated: true)
+            }
         }
     }
     
     private func pushForRanking(_ ranking:Ranking) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let tilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as! ATTilesVC
-        tilesVC.setDataParameters(.products, parenCategoryId: nil, parentRankingName: ranking.name)
-        tilesVC.navigationItem.title = ranking.name
-        self.navigationController?.pushViewController(tilesVC, animated: true)
+        if let tilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as? ATTilesVC {
+            tilesVC.setDataParameters(.products, parenCategoryId: nil, parentRankingName: ranking.name)
+            tilesVC.navigationItem.title = ranking.name
+            self.navigationController?.pushViewController(tilesVC, animated: true)
+        }
     }
     
     private func pushForProduct(_ product:Product) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let productDetailVC = storyboard.instantiateViewController(withIdentifier: "ATProductDetailVC") as! ATProductDetailVC
-        productDetailVC.product = product
-        self.navigationController?.pushViewController(productDetailVC, animated: true)
+        if let productDetailVC = storyboard.instantiateViewController(withIdentifier: "ATProductDetailVC") as? ATProductDetailVC {
+            productDetailVC.product = product
+            self.navigationController?.pushViewController(productDetailVC, animated: true)
+        }
     }
     
     internal func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -129,9 +133,11 @@ class ATTilesVC: UIViewController, UICollectionViewDataSource, UICollectionViewD
     }
     
     internal func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ATTilesVC_Tile", for: indexPath) as! ATTilesVC_Tile
-        cell.setItem(self.items[indexPath.row])
-        return cell
+        if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ATTilesVC_Tile", for: indexPath) as? ATTilesVC_Tile {
+            cell.setItem(self.items[indexPath.row])
+            return cell
+        }
+        return UITableViewCell.init()
     }
     
     internal func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {

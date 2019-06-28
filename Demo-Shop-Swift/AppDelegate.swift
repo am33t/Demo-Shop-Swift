@@ -24,21 +24,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         ATAppManager.sharedManager().refreshDemoData()
     }
     func setupRootVC() {
+        var vcs = [UIViewController]()
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let categoriesTilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as! ATTilesVC
-        categoriesTilesVC.tabBarItem.title = "Categories"
-        categoriesTilesVC.tabBarItem.image = #imageLiteral(resourceName: "Categories")
-        categoriesTilesVC.navigationItem.title = "Categories"
-        categoriesTilesVC.setDataParameters(.categories, parenCategoryId: nil, parentRankingName: nil)
-        
-        let productsByRankingTIlesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as! ATTilesVC
-        productsByRankingTIlesVC.tabBarItem.title = "Rankings"
-        productsByRankingTIlesVC.tabBarItem.image = #imageLiteral(resourceName: "Rankings")
-        productsByRankingTIlesVC.navigationItem.title = "Rankings"
-        productsByRankingTIlesVC.setDataParameters(.rankings, parenCategoryId: nil, parentRankingName: nil)
-        
+        if let categoriesTilesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as? ATTilesVC {
+            categoriesTilesVC.tabBarItem.title = "Categories"
+            categoriesTilesVC.tabBarItem.image = #imageLiteral(resourceName: "Categories")
+            categoriesTilesVC.navigationItem.title = "Categories"
+            categoriesTilesVC.setDataParameters(.categories, parenCategoryId: nil, parentRankingName: nil)
+            vcs.append(UINavigationController.init(rootViewController: categoriesTilesVC))
+        }
+        if let productsByRankingTIlesVC = storyboard.instantiateViewController(withIdentifier: "ATTilesVC") as? ATTilesVC {
+            productsByRankingTIlesVC.tabBarItem.title = "Rankings"
+            productsByRankingTIlesVC.tabBarItem.image = #imageLiteral(resourceName: "Rankings")
+            productsByRankingTIlesVC.navigationItem.title = "Rankings"
+            productsByRankingTIlesVC.setDataParameters(.rankings, parenCategoryId: nil, parentRankingName: nil)
+            vcs.append(UINavigationController.init(rootViewController: productsByRankingTIlesVC))
+        }
         let tabVC = UITabBarController()
-        tabVC.viewControllers = [UINavigationController.init(rootViewController: categoriesTilesVC),UINavigationController.init(rootViewController: productsByRankingTIlesVC)]
+        tabVC.viewControllers = vcs
         self.window?.rootViewController = tabVC
     }
 
