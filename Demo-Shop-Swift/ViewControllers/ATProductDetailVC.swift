@@ -26,7 +26,7 @@ class ATProductDetailVC: UIViewController, UITableViewDataSource, UITableViewDel
     }
     
     private func setupUI() {
-        self.tableViewVariants.rowHeight = UITableViewAutomaticDimension
+        self.tableViewVariants.rowHeight = UITableView.automaticDimension
         self.tableViewVariants.estimatedRowHeight = 100
         self.tableViewVariants.dataSource = self
         self.tableViewVariants.delegate = self
