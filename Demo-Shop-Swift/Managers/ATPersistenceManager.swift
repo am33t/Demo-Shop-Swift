@@ -61,7 +61,7 @@ class ATPersistenceManager
         let realm = try! Realm()
         for category in categories {
             try! realm.write {
-                realm.add(category, update: true)
+                realm.add(category, update: .all)
             }
         }
     }
@@ -69,7 +69,7 @@ class ATPersistenceManager
         let realm = try! Realm()
         for ranking in rankings {
             try! realm.write {
-                realm.add(ranking, update: true)
+                realm.add(ranking, update: .all)
             }
         }
     }
@@ -90,9 +90,11 @@ class ATPersistenceManager
     }
     func childCategoriesForCategoryId(_ categoryId:String) -> [Category] {
         let realm = try! Realm()
-        let category = realm.objects(Category.self).filter("id = '\(categoryId)'").first
-        let categories = realm.objects(Category.self).filter("id IN %@",category?.child_categories)
-        return Array(categories)
+        if let category = realm.objects(Category.self).filter("id = '\(categoryId)'").first {
+            let categories = realm.objects(Category.self).filter("id IN %@",category.child_categories)
+            return Array(categories)
+        }
+        return [Category]()
     }
     func productsForCategoryId(_ categoryId:String) -> [Product] {
         let realm = try! Realm()
